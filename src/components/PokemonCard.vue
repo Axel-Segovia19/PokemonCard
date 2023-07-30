@@ -1,22 +1,22 @@
 <template>
-    <div class="h-full w-full">
+    <div class="w-full min-w-fit h-fit flex justify-center"  @click="getRandomPokemon">
   <div
-    class="flex items-center justify-center border-2 rounded-2xl p-4 bg-yellow-400 max-w-2xl"
+    class="border-2 rounded-3xl p-4 [@media(min-width:400px)]:p-6 bg-yellow-400 max-w-lg"
   >
-    <div class="h-full w-full bg-purple-500">
+    <div class=" bg-purple-500 container">
       <div v-if="pokemon" >
         <header class="flex items-baseline justify-between mx-3.5 pt-2">
-          <h1 class="text-3xl font-bold my-2">{{ pokemonName[0].toUpperCase()+pokemonName.slice(1) }}</h1>
+          <h1 class="[@media(min-width:400px)]:text-3xl font-bold my-2">{{ pokemonName[0].toUpperCase()+pokemonName.slice(1) }}</h1>
           <div class="flex items-center">
-            <h2 class="text-2xl font-semibold">130 HP</h2>
-            <div class="w-8 h-8 border border-transparent ml-2 rounded-full bg-purple-400"></div>
+            <h2 class="[@media(min-width:400px)]:text-3xl font-semibold">130 HP</h2>
+            <div class="w-6 h-6 [@media(min-width:400px)]:w-8 [@media(min-width:400px)]:h-8 border border-transparent ml-2 rounded-full bg-purple-400"></div>
           </div>
         </header>
         <section class="flex flex-col gap-y-2">
-          <div class="border-8 mx-4 border-yellow-400 shadow-2xl flex justify-center">
-            <img :src="pokemonImage" alt="Some Pokemon" />
+          <div class="border-8 mx-4 border-yellow-400 flex justify-center shadow-[5px_5px_15px_rgba(0,0,0,0.8)]">
+            <img :src="pokemonImage" alt="Some Pokemon"/>
           </div>
-          <div class="bg-yellow-200 rounded w-fit self-center px-1 shadow-lg font-semibold">
+          <div class="bg-yellow-200 rounded w-fit self-center px-1 font-semibold">
                 NO. {{ pokemon.id }} HT: 6'07" WT: {{ pokemon.weight }}.0 lbs.
           </div>
         </section>
@@ -26,12 +26,6 @@
       </div>
     </div>
   </div>
-  <button
-    class="w-1/3 h-24 border-2 rounded-lg mt-2 hover:bg-slate-400 transition-colors duration-300"
-    @click="getRandomPokemon"
-  >
-    Click ME
-  </button>
 </div>
 
 </template>
