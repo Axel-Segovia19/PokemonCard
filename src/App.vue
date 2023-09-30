@@ -1,43 +1,37 @@
 <template>
-  <div class="flex flex-col md:flex-row bg-slate-200">
+  <div class="flex flex-col md:flex-row bg-slate-200 h-screen">
     <div class="w-full flex justify-center items-center">
-      <pokemon-card class="mr-4" :image="pokemonImage" />
+      <Transition name="fade" mode="out-in">
+        <component :is="activeComponent" :image="pokemonImage" :pokemon="selectedPokemon"/>
+      </Transition>
     </div>
-    <ul class="h-screen overflow-y-auto w-full md:overscroll-none p-4">
+    <ul class="h-screen overflow-y-auto w-full p-4 md:overscroll-none">
       <li
         v-for="(pokemon, index) in pokemonStore.allPokemon"
         :key="`poke-${index}`"
         @mouseover="setSelectedPokemon(pokemon)"
+        @click="showDetailsCard"
       >
-        <div
-          class="flex items-center rounded-tl-full rounded-bl-full pl-2 gap-x-2 mt-2 hover:bg-blue-300"
-        >
-          <span>
-            <img
-              class="w-12 h-12"
-              :src="getListSprite(pokemon)"
-              alt="pokemonSprite"
-            />
-          </span>
-          <span>
-            No.{{ pokemon.entry_number }}
-            {{ getPokemonName(pokemon.pokemon_species.name) }}
-          </span>
-        </div>
+        <pokemon-list-option :pokemon="pokemon" />
       </li>
     </ul>
   </div>
 </template>
 
 <script setup lang="ts">
-import PokemonCard from "./components/PokemonCard.vue";
-import { onMounted, reactive, ref, Ref, computed, ComputedRef } from "vue";
+import PokemonImageCard from "./components/PokemonImageCard.vue";
+import PokemonListOption from "./components/PokemonListOption.vue";
+import PokemonDetails from "./components/PokemonDetails.vue";
+import { onMounted, reactive, ref, Ref, computed, ComputedRef , shallowRef, watch} from "vue";
 import axios from "axios";
 
-const selectedPokemon: Ref<string | undefined> = ref(undefined);
+const selectedPokemon: Ref<any> = ref(undefined);
+const showPokemonDetails = ref(false)
 const pokemonStore = reactive({
   allPokemon: [],
 });
+
+const activeComponent: Ref<typeof PokemonImageCard |typeof PokemonDetails> = shallowRef(PokemonImageCard)
 
 const pokemonImage: ComputedRef<string> = computed(() => {
   if (selectedPokemon.value) {
@@ -46,28 +40,49 @@ const pokemonImage: ComputedRef<string> = computed(() => {
   return "";
 });
 
+watch(showPokemonDetails, (val)=> activeComponent.value = val? PokemonDetails : PokemonImageCard)
+
 async function getAllPokemon(): Promise<void> {
   const allPokemon = await axios.get(`https://pokeapi.co/api/v2/pokedex/2`);
   allPokemon.data.pokemon_entries.forEach(async (entry) => {
-    const speciesData = await axios.get(entry.pokemon_species.url);
-    entry.pokemon_species.info = speciesData.data;
+    const pokemonInfo = await axios.get(
+      `https://pokeapi.co/api/v2/pokemon/${entry.entry_number}`
+    );
+    const pokemonDescription = await axios.get(entry.pokemon_species.url);
+    const { genera, flavor_text_entries } = pokemonDescription.data;
+    entry.pokemon_species.info = pokemonInfo.data;
+    Object.assign(
+      entry.pokemon_species,
+      getEnglishInfo(genera),
+      getEnglishInfo(flavor_text_entries)
+    );
   });
   pokemonStore.allPokemon = allPokemon.data.pokemon_entries;
 }
 
-function getPokemonName(name: string): string {
-  return name[0].toUpperCase() + name.substring(1);
+function showDetailsCard(){
+  showPokemonDetails.value = !showPokemonDetails.value
+}
+function getEnglishInfo(pokemonObject) {
+  return pokemonObject.find((entry) => entry.language.name == "en");
 }
 
 function setSelectedPokemon(pokemon): void {
   selectedPokemon.value = pokemon;
 }
 
-function getListSprite(pokemonEntry: number): string {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonEntry.entry_number}.png`;
-}
-
 onMounted(() => {
   getAllPokemon();
 });
 </script>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.150s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
