@@ -2,17 +2,22 @@
   <div class="flex flex-col md:flex-row bg-slate-200 h-screen">
     <div class="w-full flex justify-center items-center">
       <Transition name="fade" mode="out-in">
-        <component :is="activeComponent" :image="pokemonImage" :pokemon="selectedPokemon"/>
+        <component
+          :is="activeComponent"
+          :image="pokemonImage"
+          :pokemon="selectedPokemon"
+        />
       </Transition>
     </div>
     <ul class="h-screen overflow-y-auto w-full p-4 md:overscroll-none">
       <li
         v-for="(pokemon, index) in pokemonStore.allPokemon"
         :key="`poke-${index}`"
-        @mouseover="setSelectedPokemon(pokemon)"
-        @click="showDetailsCard"
       >
-        <pokemon-list-option :pokemon="pokemon" />
+        <pokemon-list-option
+          :pokemon="pokemon"
+          @update:selected-pokemon="setSelectedPokemon(pokemon)"
+        />
       </li>
     </ul>
   </div>
@@ -22,16 +27,22 @@
 import PokemonImageCard from "./components/PokemonImageCard.vue";
 import PokemonListOption from "./components/PokemonListOption.vue";
 import PokemonDetails from "./components/PokemonDetails.vue";
-import { onMounted, reactive, ref, Ref, computed, ComputedRef , shallowRef, watch} from "vue";
+import { onMounted, reactive, ref, Ref, computed, ComputedRef } from "vue";
 import axios from "axios";
 
-const selectedPokemon: Ref<any> = ref(undefined);
-const showPokemonDetails = ref(false)
 const pokemonStore = reactive({
   allPokemon: [],
 });
+const selectedPokemon: Ref<any> = ref(undefined);
 
-const activeComponent: Ref<typeof PokemonImageCard |typeof PokemonDetails> = shallowRef(PokemonImageCard)
+const showPokemonDetails = computed(() => {
+  if (selectedPokemon.value) {
+    return selectedPokemon.value.showDetails;
+  }
+});
+const activeComponent: ComputedRef<
+  typeof PokemonImageCard | typeof PokemonDetails
+> = computed(() => (showPokemonDetails.value ? PokemonDetails : PokemonImageCard));
 
 const pokemonImage: ComputedRef<string> = computed(() => {
   if (selectedPokemon.value) {
@@ -39,8 +50,6 @@ const pokemonImage: ComputedRef<string> = computed(() => {
   }
   return "";
 });
-
-watch(showPokemonDetails, (val)=> activeComponent.value = val? PokemonDetails : PokemonImageCard)
 
 async function getAllPokemon(): Promise<void> {
   const allPokemon = await axios.get(`https://pokeapi.co/api/v2/pokedex/2`);
@@ -51,6 +60,7 @@ async function getAllPokemon(): Promise<void> {
     const pokemonDescription = await axios.get(entry.pokemon_species.url);
     const { genera, flavor_text_entries } = pokemonDescription.data;
     entry.pokemon_species.info = pokemonInfo.data;
+    entry.showDetails = false;
     Object.assign(
       entry.pokemon_species,
       getEnglishInfo(genera),
@@ -60,9 +70,6 @@ async function getAllPokemon(): Promise<void> {
   pokemonStore.allPokemon = allPokemon.data.pokemon_entries;
 }
 
-function showDetailsCard(){
-  showPokemonDetails.value = !showPokemonDetails.value
-}
 function getEnglishInfo(pokemonObject) {
   return pokemonObject.find((entry) => entry.language.name == "en");
 }
@@ -78,7 +85,7 @@ onMounted(() => {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.150s ease;
+  transition: opacity 0.15s ease;
 }
 
 .fade-enter-from,

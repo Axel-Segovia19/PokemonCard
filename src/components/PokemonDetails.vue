@@ -39,6 +39,5 @@ const props = defineProps({
     type: Object,
   },
 });
-
 const PokemonTypes = computed(()=> props.pokemon?.pokemon_species.info.types.map((types)=> types.type.name))
 </script>
