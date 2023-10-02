@@ -27,6 +27,7 @@
 import PokemonImageCard from "./components/PokemonImageCard.vue";
 import PokemonListOption from "./components/PokemonListOption.vue";
 import PokemonDetails from "./components/PokemonDetails.vue";
+import { Pokemon, PokemonText } from  './Type'
 import { onMounted, reactive, ref, Ref, computed, ComputedRef } from "vue";
 import axios from "axios";
 
@@ -53,7 +54,7 @@ const pokemonImage: ComputedRef<string> = computed(() => {
 
 async function getAllPokemon(): Promise<void> {
   const allPokemon = await axios.get(`https://pokeapi.co/api/v2/pokedex/2`);
-  allPokemon.data.pokemon_entries.forEach(async (entry) => {
+  allPokemon.data.pokemon_entries.forEach(async (entry: any) => {
     const pokemonInfo = await axios.get(
       `https://pokeapi.co/api/v2/pokemon/${entry.entry_number}`
     );
@@ -70,11 +71,11 @@ async function getAllPokemon(): Promise<void> {
   pokemonStore.allPokemon = allPokemon.data.pokemon_entries;
 }
 
-function getEnglishInfo(pokemonObject) {
-  return pokemonObject.find((entry) => entry.language.name == "en");
+function getEnglishInfo(pokemon: PokemonText[]) {
+  return pokemon.find((entry: PokemonText) => entry.language.name == "en");
 }
 
-function setSelectedPokemon(pokemon): void {
+function setSelectedPokemon(pokemon: Pokemon): void {
   selectedPokemon.value = pokemon;
 }
 

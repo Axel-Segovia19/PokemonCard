@@ -19,15 +19,14 @@
 
 <script setup lang="ts">
 import { upperCaseFirstLetter, getSprite } from "../Helpers";
+import { Pokemon } from "../Type";
 
 defineOptions({
   name: "PokemonListOption",
 });
-defineProps({
-  pokemon: {
-    type: Object,
-  },
-});
+defineProps<{
+  pokemon: Pokemon
+}>();
 const emit = defineEmits<{
   (e: "update:modelValue", toggleDetails: boolean): void;
   (e: "update:selectedPokemon"): void;

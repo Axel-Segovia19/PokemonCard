@@ -7,10 +7,14 @@
         {{ upperCaseFirstLetter(pokemon?.pokemon_species.name) }}
       </span>
     </div>
-    <div class="bg-slate-300 p-2 text-center">{{ pokemon?.pokemon_species.genus }}</div>
+    <div class="bg-slate-300 p-2 text-center">
+      {{ pokemon?.pokemon_species.genus }}
+    </div>
     <div class="p-2 grid grid-cols-3 text-center">
       <span>Type</span>
-      <span v-for="type, index in PokemonTypes" :key="index">{{ upperCaseFirstLetter(type) }}</span>
+      <span v-for="(type, index) in PokemonTypes" :key="index">{{
+        upperCaseFirstLetter(type)
+      }}</span>
     </div>
     <div class="grid grid-cols-3 text-center p-2">
       <span>Height</span>
@@ -29,15 +33,16 @@
 <script setup lang="ts">
 import { upperCaseFirstLetter, getSprite } from "../Helpers";
 import { computed } from "vue";
+import { Pokemon, PokemonType } from "../Type";
 
 defineOptions({
   name: "PokemonDetails",
 });
 
-const props = defineProps({
-  pokemon: {
-    type: Object,
-  },
-});
-const PokemonTypes = computed(()=> props.pokemon?.pokemon_species.info.types.map((types)=> types.type.name))
+const props = defineProps<{
+  pokemon: Pokemon;
+}>();
+const PokemonTypes = computed(() =>
+  props.pokemon?.pokemon_species.info.types.map((types: PokemonType) => types.type.name)
+);
 </script>
