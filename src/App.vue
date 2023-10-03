@@ -1,18 +1,19 @@
 <template>
   <div class="flex flex-col md:flex-row bg-slate-200 h-screen">
-    <div class="w-full flex justify-center items-center">
-      <Transition name="fade" mode="out-in">
-        <component
-          :is="activeComponent"
-          :image="pokemonImage"
-          :pokemon="selectedPokemon"
-        />
-      </Transition>
+    <div v-if="pokemonStore.selectedPokemon" class="w-full flex flex-col justify-center items-center">
+      <template class="flex md:hidden items-center">
+        <pokemon-mobile-view :pokemon-image="pokemonStore.pokemonImage" :selected-pokemon="pokemonStore.selectedPokemon"/>
+      </template>
+      <template class="hidden md:flex md:flex-col items-center ">
+        
+        <pokemon-desktop-view  :pokemon-image="pokemonStore.pokemonImage" :selected-pokemon="pokemonStore.selectedPokemon"/>
+      </template>
     </div>
     <ul class="h-screen overflow-y-auto w-full p-4 md:overscroll-none">
       <li
         v-for="(pokemon, index) in pokemonStore.allPokemon"
         :key="`poke-${index}`"
+        :class="{'bg-red-300 rounded-tl-full rounded-bl-full': pokemonStore.selectedPokemon == pokemon}"
       >
         <pokemon-list-option
           :pokemon="pokemon"
@@ -24,73 +25,61 @@
 </template>
 
 <script setup lang="ts">
-import PokemonImageCard from "./components/PokemonImageCard.vue";
 import PokemonListOption from "./components/PokemonListOption.vue";
-import PokemonDetails from "./components/PokemonDetails.vue";
+import PokemonMobileView from "./components/PokemonMobileView.vue";
+import PokemonDesktopView from "./components/PokemonDesktopView.vue";
 import { Pokemon, PokemonText } from  './Type'
-import { onMounted, reactive, ref, Ref, computed, ComputedRef } from "vue";
+import { onMounted, reactive, ref, computed } from "vue";
 import axios from "axios";
 
 const pokemonStore = reactive({
-  allPokemon: [],
+  allPokemon: ref<Pokemon[]>([]),
+  selectedPokemon: ref<Pokemon>(),
+  pokemonImage: computed((): string => {
+    if(!pokemonStore.selectedPokemon?.entry_number) return ''
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonStore.selectedPokemon?.entry_number}.png`}),
 });
-const selectedPokemon: Ref<any> = ref(undefined);
 
-const showPokemonDetails = computed(() => {
-  if (selectedPokemon.value) {
-    return selectedPokemon.value.showDetails;
-  }
-});
-const activeComponent: ComputedRef<
-  typeof PokemonImageCard | typeof PokemonDetails
-> = computed(() => (showPokemonDetails.value ? PokemonDetails : PokemonImageCard));
 
-const pokemonImage: ComputedRef<string> = computed(() => {
-  if (selectedPokemon.value) {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedPokemon.value.entry_number}.png` as string;
-  }
-  return "";
-});
+
+async function fetchPokemonData(entry: Pokemon): Promise<Pokemon> {
+  const [pokemonInfo, pokemonDescription] = await Promise.all([
+    axios.get(`https://pokeapi.co/api/v2/pokemon/${entry.entry_number}`),
+    axios.get(entry.pokemon_species.url)
+  ]);
+
+  const { genera, flavor_text_entries } = pokemonDescription.data;
+  entry.pokemon_species.info = pokemonInfo.data;
+  entry.showDetails = false;
+  Object.assign(
+    entry.pokemon_species,
+    getEnglishInfo(genera),
+    getEnglishInfo(flavor_text_entries)
+  );
+  return entry
+}
 
 async function getAllPokemon(): Promise<void> {
   const allPokemon = await axios.get(`https://pokeapi.co/api/v2/pokedex/2`);
-  allPokemon.data.pokemon_entries.forEach(async (entry: any) => {
-    const pokemonInfo = await axios.get(
-      `https://pokeapi.co/api/v2/pokemon/${entry.entry_number}`
-    );
-    const pokemonDescription = await axios.get(entry.pokemon_species.url);
-    const { genera, flavor_text_entries } = pokemonDescription.data;
-    entry.pokemon_species.info = pokemonInfo.data;
-    entry.showDetails = false;
-    Object.assign(
-      entry.pokemon_species,
-      getEnglishInfo(genera),
-      getEnglishInfo(flavor_text_entries)
-    );
-  });
-  pokemonStore.allPokemon = allPokemon.data.pokemon_entries;
+
+  const allPokemonResponse: Pokemon[] = await Promise.all(allPokemon.data.pokemon_entries.map(fetchPokemonData));
+  pokemonStore.allPokemon = allPokemonResponse
 }
 
-function getEnglishInfo(pokemon: PokemonText[]) {
+function getEnglishInfo(pokemon: PokemonText[]): PokemonText| undefined {
   return pokemon.find((entry: PokemonText) => entry.language.name == "en");
 }
 
 function setSelectedPokemon(pokemon: Pokemon): void {
-  selectedPokemon.value = pokemon;
+  pokemonStore.selectedPokemon = pokemon;
 }
 
-onMounted(() => {
-  getAllPokemon();
+async function setup(){
+  await getAllPokemon();
+  pokemonStore.selectedPokemon = pokemonStore.allPokemon[0]
+}
+
+onMounted(async () => {
+  await setup()
 });
 </script>
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.15s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

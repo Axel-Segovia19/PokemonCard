@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { upperCaseFirstLetter, getSprite } from "../Helpers";
-import { computed } from "vue";
+import { ComputedRef, computed } from "vue";
 import { Pokemon, PokemonType } from "../Type";
 
 defineOptions({
@@ -42,7 +42,7 @@ defineOptions({
 const props = defineProps<{
   pokemon: Pokemon;
 }>();
-const PokemonTypes = computed(() =>
+const PokemonTypes: ComputedRef<string[]> = computed(() =>
   props.pokemon?.pokemon_species.info.types.map((types: PokemonType) => types.type.name)
 );
 </script>

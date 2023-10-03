@@ -11,7 +11,7 @@
         {{ upperCaseFirstLetter(pokemon?.pokemon_species.name) }}
       </span>
     </div>
-    <div>
+    <div class="md:hidden">
       <button @click="pokemon!.showDetails = !pokemon?.showDetails">{{ pokemon?.showDetails ? 'Show Details' : 'Show Image'}}</button>
     </div>
   </div>
@@ -32,7 +32,7 @@ const emit = defineEmits<{
   (e: "update:selectedPokemon"): void;
 }>();
 
-function changePokemon(){
+function changePokemon(): void{
   emit('update:selectedPokemon')
 }
 

@@ -9,6 +9,7 @@ export type PokemonSpecies = {
   genus: string
   name: string
   info: PokemonInfo
+  url: string
 }
 
 export type PokemonInfo = {
