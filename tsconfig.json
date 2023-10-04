@@ -33,7 +33,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["unplugin-vue-macros/macros-global" /* ... */]
+    "types": [
+      "unplugin-icons/types/vue",
+      "unplugin-vue-macros/macros-global" /* ... */]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]
