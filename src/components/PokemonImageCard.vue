@@ -14,5 +14,5 @@ const props = defineProps({
     type: String
   }
 })
-const computedImage: ComputedRef<string> = computed(()=> props.image || questionMark)
+const computedImage: ComputedRef<string> = computed(()=> props.image || "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/494.png")
 </script>

@@ -5,5 +5,5 @@ export const upperCaseFirstLetter = (name: string): string => {
 }
 
 export const getSprite = (pokemon: Pokemon): string => {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.entry_number}.png`;
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
 }

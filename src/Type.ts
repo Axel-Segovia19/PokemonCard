@@ -2,6 +2,7 @@ export type Pokemon = {
   entry_number: number
   showDetails: boolean
   pokemon_species: PokemonSpecies
+  id: number
 }
 
 export type PokemonSpecies = {
